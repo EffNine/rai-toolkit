@@ -62,7 +62,7 @@ pyrit = [
     "pyrit>=0.13.0",
 ]
 garak = [
-    "garak>=0.15.0",
+    "garak>=0.17.0,<0.18",
     # transformers v5 (a garak transitive dep) lazy-references torchvision in
     # its `*_image_processing_fast` modules. None of our
     # runtime paths use torchvision; it's purely there to satisfy the lazy
@@ -78,7 +78,7 @@ demo = [
     "pandas>=2.1.0",
 ]
 datasets = [
-    # Upper bound matches the cap from garak 0.15 (datasets<4.0) so the [all]
+    # Upper bound matches the cap from garak 0.17 (datasets<4.0) so the [all]
     # extra still resolves. Bump in lockstep when garak relaxes its pin.
     "datasets>=3.0.0,<4.0",
 ]

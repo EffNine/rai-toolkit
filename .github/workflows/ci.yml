@@ -91,6 +91,31 @@ jobs:
       - name: Run Weave integration tests
         run: python -m pytest -q
 
+  garak-tests:
+    name: Garak 0.17 tests (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.14"]
+    env:
+      HF_HUB_OFFLINE: "1"
+      TRANSFORMERS_OFFLINE: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install Garak with CPU-only PyTorch
+        run: |
+          python -m pip install "uv==0.11.24"
+          uv venv /tmp/rai-toolkit-garak
+          uv pip install --python /tmp/rai-toolkit-garak/bin/python --torch-backend cpu -e ".[garak,dev]" "garak==0.17.0" pip
+          /tmp/rai-toolkit-garak/bin/python -m pip check
+          /tmp/rai-toolkit-garak/bin/python -c "from importlib.metadata import version; from integrations.garak_integration.adapter import GARAK_INSTALLED; assert version('garak') == '0.17.0' and GARAK_INSTALLED"
+      - name: Run real probes and the regression suite offline
+        run: /tmp/rai-toolkit-garak/bin/python -m pytest -q
+
   quality:
     name: Quality and licensing
     runs-on: ubuntu-latest

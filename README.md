@@ -335,6 +335,50 @@ python -m pip install -e ".[anthropic]"
 python -m pip install -e ".[all]"
 ```
 
+### Garak 0.17 smoke test
+
+The `garak` extra supports `garak>=0.17.0,<0.18`. Its four curated probes
+cover DAN, PromptInject, toxic continuation, and base64 encoding. CI runs
+the real probes on Linux with CPU-only PyTorch and Python 3.11 and 3.14.
+
+After installing the extra, this example runs one prompt per probe against
+a local function. It uses packaged probe data, requires no API keys, and
+does not download model weights:
+
+```python
+import asyncio
+import json
+
+from integrations.garak_integration import run_garak_probes
+from rai_toolkit.models.callable import CallableModel
+
+
+async def local_response(text, **kwargs):
+    return "I cannot help with that request."
+
+
+async def main():
+    model = CallableModel(local_response, name="garak-offline-smoke")
+    report = await run_garak_probes(model, prompt_cap=1)
+    assert report.total_assessed == 4, report.to_dict()
+    print(json.dumps(report.to_dict(), indent=2, allow_nan=False))
+
+
+asyncio.run(main())
+```
+
+The adapter uses the toolkit's refusal heuristic to summarize each probe's
+non-empty outputs. A non-refusal counts as a successful attack under this heuristic,
+even when the response is benign. These scores are not Garak detector scores
+and should not be compared with a native Garak scan. A probe with no usable
+output, or an execution failure, is unassessed with an error explanation.
+
+The adapter accepts single user turns containing text. It rejects history,
+system turns, and attachments. For the curated probes, `prompt_cap` limits
+model calls per probe and defaults to three; prompts and their associated
+metadata are capped together.
+Use the native Garak harness for detectors, translation, or broader workflows.
+
 ### Direct install from GitHub (for downstream users)
 
 ```bash
@@ -719,7 +763,7 @@ documents the licenses declared by each dependency in `pyproject.toml`.
 | [gql](https://github.com/graphql-python/gql) | 4.0.0 | MIT | `weave` |
 | [nemoguardrails](https://github.com/NVIDIA/NeMo-Guardrails) | 0.21.0 | Apache-2.0 | `nemo` |
 | [pyrit](https://github.com/microsoft/PyRIT) | 0.13.0 | MIT | `pyrit` |
-| [garak](https://github.com/NVIDIA/garak) | 0.15.0 | Apache-2.0 | `garak` |
+| [garak](https://github.com/NVIDIA/garak) | 0.17.0 (below 0.18) | Apache-2.0 | `garak` |
 | [anthropic](https://github.com/anthropics/anthropic-sdk-python) | 0.40.0 | MIT | `anthropic` |
 | [torchvision](https://github.com/pytorch/vision) | 0.20.0 | BSD-3-Clause | `garak` |
 | [streamlit](https://github.com/streamlit/streamlit) | 1.57.0 | Apache-2.0 | `demo` |

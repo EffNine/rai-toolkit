@@ -82,6 +82,26 @@ python -m pytest -q
 deactivate
 ```
 
+## Optional offline Garak checks
+
+Use a separate environment on a platform supported by the Garak extra:
+
+```bash
+python3.11 -m venv .venv-garak
+source .venv-garak/bin/activate
+python -m pip install -e ".[dev,garak]" "garak==0.17.0"
+python -m pip check
+python -m pytest -q tests/test_garak_integration.py
+deactivate
+```
+
+These tests run the four actual curated probes with local model responses
+and block network connections. They cover upstream message types, prompt
+limits, outcome evidence, errors, source coverage, and concurrent execution.
+They skip when Garak is absent from a core-only environment. Dedicated CI
+jobs require exact Garak 0.17.0 and run the full suite on Linux with CPU-only
+PyTorch, using Python 3.11 and 3.14.
+
 ## Dependency compatibility
 
 CI resolves the core dependencies, every declared extra independently, and
